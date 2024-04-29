@@ -15,7 +15,7 @@ public class PostDTO {
     @Size(max = 255)
     private String content;
 
-    private Long user;
+    private Long userId;
     private Long likeCount;
 
 
@@ -43,12 +43,13 @@ public class PostDTO {
         this.content = content;
     }
 
-    public Long getUser() {
-        return user;
+
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(final Long user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Long getLikeCount() {

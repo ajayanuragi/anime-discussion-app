@@ -50,7 +50,6 @@ public class CommentDTO {
     }
 
 
-
     public Long getLikeCount() {
         return likeCount;
     }

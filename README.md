@@ -17,3 +17,4 @@ The application can be built using the following command:
 mvnw clean package
 ```
 
+?sessionVariables=sql_mode='NO_ENGINE_SUBSTITUTION'&jdbcCompliantTruncation=false

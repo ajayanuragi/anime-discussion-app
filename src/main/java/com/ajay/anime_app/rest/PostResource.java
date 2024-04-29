@@ -20,8 +20,9 @@ public class PostResource {
 
     private final PostService postService;
 
-    public PostResource(final PostService postService) {
+    public PostResource(PostService postService) {
         this.postService = postService;
+
     }
 
     @GetMapping
@@ -36,26 +37,26 @@ public class PostResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createPost(@RequestBody @Valid final PostDTO postDTO) {
-        final Long createdId = postService.create(postDTO);
+    public ResponseEntity<Long> createPost(@RequestHeader("Authorization") String token, @RequestBody @Valid final PostDTO postDTO) {
+        final Long createdId = postService.create(postDTO, token);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updatePost(@PathVariable(name = "id") final Long id,
+    public ResponseEntity<String> updatePost(@RequestHeader("Authorization") String token, @PathVariable(name = "id") final Long id,
                                              @RequestBody @Valid final PostDTO postDTO) {
-        postService.update(id, postDTO);
+        postService.update(id, postDTO, token);
         return ResponseEntity.ok("Post with postId: " + id + " update successfully");
     }
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
-    public ResponseEntity<String> deletePost(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<String> deletePost(@RequestHeader("Authorization") String token, @PathVariable(name = "id") final Long id) {
         final ReferencedWarning referencedWarning = postService.getReferencedWarning(id);
         if (referencedWarning != null) {
             throw new ReferencedException(referencedWarning);
         }
-        postService.delete(id);
+        postService.delete(id, token);
         return ResponseEntity.ok("Post with postId: " + id + " update successfully");
     }
 
@@ -64,9 +65,4 @@ public class PostResource {
         return postService.getPostsByUserId(userId);
     }
 
-    @PostMapping("/{postId}/like")
-    public ResponseEntity<String> likeOrDislikePost(@PathVariable Long postId) {
-        postService.likeOrDislikePost(postId);
-        return ResponseEntity.ok("likeId");
-    }
 }

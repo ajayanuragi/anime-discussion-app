@@ -36,8 +36,8 @@ public class CommentResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createComment(@RequestBody @Valid final CommentDTO commentDTO, @RequestParam(required = false) Long parentId) {
-        final Long createdId = commentService.create(commentDTO, parentId);
+    public ResponseEntity<Long> createComment(@RequestHeader("Authorization") String token, @RequestBody @Valid final CommentDTO commentDTO, @RequestParam(required = false) Long parentId) {
+        final Long createdId = commentService.create(commentDTO, parentId, token);
         return new ResponseEntity<>(createdId, HttpStatus.CREATED);
     }
 

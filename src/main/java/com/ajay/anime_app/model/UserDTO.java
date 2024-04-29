@@ -16,12 +16,13 @@ public class UserDTO {
 
     @NotNull
     @Size(max = 15)
-    @UserUserNameUnique
-    private String userName;
+    @UserUsernameUnique
+    private String username;
 
     @NotNull
     @Size(max = 15)
     private String password;
+    private String role = "USER";
 
 
     public Long getId() {
@@ -48,12 +49,12 @@ public class UserDTO {
         this.lastName = lastName;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(final String userName) {
-        this.userName = userName;
+    public void setUsername(final String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -64,5 +65,11 @@ public class UserDTO {
         this.password = password;
     }
 
+    public String getRole() {
+        return role;
+    }
 
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

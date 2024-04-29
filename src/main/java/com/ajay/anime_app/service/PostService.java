@@ -1,7 +1,6 @@
 package com.ajay.anime_app.service;
 
 import com.ajay.anime_app.domain.Comment;
-import com.ajay.anime_app.domain.Like;
 import com.ajay.anime_app.domain.Post;
 import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.model.PostDTO;
@@ -11,7 +10,6 @@ import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
 import com.ajay.anime_app.util.ReferencedWarning;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -26,20 +24,19 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final JwtService jwtService;
 
-    public PostService(final PostRepository postRepository, final UserRepository userRepository,
-                       final CommentRepository commentRepository, final LikeRepository likeRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, CommentRepository commentRepository, LikeRepository likeRepository, JwtService jwtService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.likeRepository = likeRepository;
+        this.jwtService = jwtService;
     }
 
     public List<PostDTO> findAll() {
         final List<Post> posts = postRepository.findByIsDeletedFalse(Sort.by("id"));
-        return posts.stream()
-                .map(post -> mapToDTO(post, new PostDTO()))
-                .toList();
+        return posts.stream().map(post -> mapToDTO(post, new PostDTO())).toList();
     }
 
     public PostDTO get(final Long id) {
@@ -51,34 +48,40 @@ public class PostService {
 
     }
 
-    public Long create(final PostDTO postDTO) {
+    public Long create(final PostDTO postDTO, String token) {
         final Post post = new Post();
-        validatePostDetails(postDTO);
+        String username = getUsernameFromToken(token);
+        Optional<User> optionalUser = userRepository.findByUsernameAndIsDeletedFalse(username);
+        optionalUser.ifPresent(post::setUser);
         mapToEntity(postDTO, post);
         return postRepository.save(post).getId();
     }
 
-    private void validatePostDetails(PostDTO postDTO) {
-        if (postDTO.getUser() == null || postDTO.getTitle() == null) {
-            throw new NotFoundException("Please provide user details and title of the post");
-        }
+    private String getUsernameFromToken(String token) {
+        return jwtService.extractUsername(token.substring(7));
     }
 
-    public void update(final Long id, final PostDTO postDTO) {
+    public void update(final Long id, final PostDTO postDTO, String token) {
+        String username = getUsernameFromToken(token);
         final Post post = postRepository.findByIdAndIsDeletedFalse(id);
-        if (post == null) {
-            throw new NotFoundException("No post found with postId: " + id);
-        }
+        validation(post, username, id);
         mapToEntity(postDTO, post);
         postRepository.save(post);
     }
 
-    public void delete(final Long id) {
-
-        final Post post = postRepository.findByIdAndIsDeletedFalse(id);
+    private void validation(Post post, String username, Long id) {
         if (post == null) {
             throw new NotFoundException("No post found with postId: " + id);
         }
+        if (!post.getUser().getUsername().equals(username)) {
+            throw new NotFoundException("You can't update this post");
+        }
+    }
+
+    public void delete(final Long id, String token) {
+        final Post post = postRepository.findByIdAndIsDeletedFalse(id);
+        String username = getUsernameFromToken(token);
+        validation(post, username, id);
         post.setDeleted(true);
         postRepository.save(post);
     }
@@ -87,7 +90,7 @@ public class PostService {
         postDTO.setId(post.getId());
         postDTO.setTitle(post.getTitle());
         postDTO.setContent(post.getContent());
-        postDTO.setUser(post.getUser() == null ? null : post.getUser().getId());
+        postDTO.setUserId(post.getUser().getId());
         postDTO.setLikeCount(post.getLikeCount());
         return postDTO;
     }
@@ -95,9 +98,6 @@ public class PostService {
     private Post mapToEntity(final PostDTO postDTO, final Post post) {
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
-        final User user = postDTO.getUser() == null ? null : userRepository.findById(postDTO.getUser())
-                .orElseThrow(() -> new NotFoundException("user not found"));
-        post.setUser(user);
         return post;
     }
 
@@ -123,43 +123,9 @@ public class PostService {
     }
 
     private void checkIfUserExists(Long userId) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty()) {
+        User user = userRepository.findByIdAndIsDeletedFalse(userId);
+        if (user == null) {
             throw new NotFoundException("No user found with userId: " + userId);
         }
-    }
-
-    @Transactional
-    public String likeOrDislikePost(Long postId) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        PostDTO postDTO = get(postId);
-        if (optionalPost.isPresent()) {
-            boolean isLiked = checkIfAlreadyLiked(postId);
-            Post post = optionalPost.get();
-            long userId = post.getUser().getId();
-            if (!isLiked) {
-                Like like = new Like(userId, postId, 0L, false);
-                post.setLikeCount(post.getLikeCount() + 1);
-                postDTO.setLikeCount(post.getLikeCount());
-                update(postId, postDTO);
-                likeRepository.save(like);
-                return "liked";
-            } else {
-                post.setLikeCount(Math.max(0, post.getLikeCount() - 1));
-                likeRepository.deleteByUserIdAndPostId(userId, postId);
-                return "disliked";
-            }
-        } else {
-            throw new NotFoundException("Post not found with id : " + postId);
-        }
-    }
-
-    private boolean checkIfAlreadyLiked(Long postId) {
-        boolean isLiked = false;
-        Optional<Like> optionalLike = likeRepository.findByPostId(postId);
-        if (optionalLike.isEmpty()) {
-            return isLiked;
-        }
-        return true;
     }
 }

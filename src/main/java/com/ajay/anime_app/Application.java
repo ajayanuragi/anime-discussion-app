@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-public class AnimeAppApplication {
+public class Application {
 
     public static void main(final String[] args) {
-        SpringApplication.run(AnimeAppApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
 }

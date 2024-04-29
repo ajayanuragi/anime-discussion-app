@@ -72,21 +72,20 @@ public class UserService {
         userDTO.setId(user.getId());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
-        userDTO.setUserName(user.getUserName());
-        userDTO.setPassword(user.getPassword());
+        userDTO.setUsername(user.getUsername());
         return userDTO;
     }
 
     private User mapToEntity(final UserDTO userDTO, final User user) {
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
-        user.setUserName(userDTO.getUserName());
+        user.setUsername(userDTO.getUsername());
         user.setPassword(userDTO.getPassword());
         return user;
     }
 
     public boolean userNameExists(final String userName) {
-        return userRepository.existsByUserNameIgnoreCase(userName);
+        return userRepository.existsByUsernameIgnoreCase(userName);
     }
 
     public ReferencedWarning getReferencedWarning(final Long id) {
@@ -109,7 +108,7 @@ public class UserService {
 
     //Validations
     private void validateUser(UserDTO userDTO) {
-        if (userDTO.getUserName() == null || userDTO.getPassword() == null) {
+        if (userDTO.getUsername() == null || userDTO.getPassword() == null) {
             throw new NotFoundException("Please provide userName and password");
         }
     }

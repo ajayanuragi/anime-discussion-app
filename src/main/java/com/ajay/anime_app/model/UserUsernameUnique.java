@@ -18,15 +18,15 @@ import static java.lang.annotation.ElementType.*;
 
 
 /**
- * Validate that the userName value isn't taken yet.
+ * Validate that the username value isn't taken yet.
  */
 @Target({FIELD, METHOD, ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Constraint(
-        validatedBy = UserUserNameUnique.UserUserNameUniqueValidator.class
+        validatedBy = UserUsernameUnique.UserUsernameUniqueValidator.class
 )
-public @interface UserUserNameUnique {
+public @interface UserUsernameUnique {
 
     String message() default "{Exists.user.userName}";
 
@@ -34,12 +34,12 @@ public @interface UserUserNameUnique {
 
     Class<? extends Payload>[] payload() default {};
 
-    class UserUserNameUniqueValidator implements ConstraintValidator<UserUserNameUnique, String> {
+    class UserUsernameUniqueValidator implements ConstraintValidator<UserUsernameUnique, String> {
 
         private final UserService userService;
         private final HttpServletRequest request;
 
-        public UserUserNameUniqueValidator(final UserService userService,
+        public UserUsernameUniqueValidator(final UserService userService,
                                            final HttpServletRequest request) {
             this.userService = userService;
             this.request = request;
@@ -54,7 +54,7 @@ public @interface UserUserNameUnique {
             @SuppressWarnings("unchecked") final Map<String, String> pathVariables =
                     ((Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE));
             final String currentId = pathVariables.get("id");
-            if (currentId != null && value.equalsIgnoreCase(userService.get(Long.parseLong(currentId)).getUserName())) {
+            if (currentId != null && value.equalsIgnoreCase(userService.get(Long.parseLong(currentId)).getUsername())) {
                 // value hasn't changed
                 return true;
             }

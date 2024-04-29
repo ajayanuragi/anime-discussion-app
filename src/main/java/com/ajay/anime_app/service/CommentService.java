@@ -22,11 +22,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final JwtService jwtService;
 
-    public CommentService(final CommentRepository commentRepository, final UserRepository userRepository, final PostRepository postRepository) {
+    public CommentService(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, JwtService jwtService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
+        this.jwtService = jwtService;
     }
 
     public List<CommentDTO> findAll() {
@@ -42,9 +44,15 @@ public class CommentService {
         return mapToDTO(comment, new CommentDTO());
     }
 
-    public Long create(final CommentDTO commentDTO, Long parentId) {
+    public Long create(final CommentDTO commentDTO, Long parentId, String token) {
+        String username = getUsernameFromToken(token);
+        Optional<User> user = userRepository.findByUsername(username);
+
         validateCommentDTO(commentDTO);
         final Comment comment = new Comment();
+        if (user.isPresent()) {
+            comment.setUser(user.get());
+        }
         if (parentId == null) {
             mapToEntity(commentDTO, comment);
         } else {
@@ -59,7 +67,6 @@ public class CommentService {
         Comment optionalParentComment = commentRepository.findByIdAndIsDeletedFalse(parentId);
         if (optionalParentComment != null) {
             comment.setParentComment(optionalParentComment);
-            System.out.println(optionalParentComment.getContent());
             mapToEntity(commentDTO, comment);
             return commentRepository.save(comment).getId();
         } else {
@@ -68,10 +75,7 @@ public class CommentService {
     }
 
     private void validateCommentDTO(CommentDTO commentDTO) {
-        if (commentDTO.getUser() == null || commentDTO.getPost() == null) {
-            throw new NotFoundException("User or post not given");
-        }
-        if(commentDTO.getContent()==null){
+        if (commentDTO.getContent() == null) {
             throw new NotFoundException("Content can't be null");
         }
     }
@@ -104,8 +108,6 @@ public class CommentService {
 
     private Comment mapToEntity(final CommentDTO commentDTO, final Comment comment) {
         comment.setContent(commentDTO.getContent());
-        final User user = commentDTO.getUser() == null ? null : userRepository.findById(commentDTO.getUser()).orElseThrow(() -> new NotFoundException("user not found"));
-        comment.setUser(user);
         final Post post = commentDTO.getPost() == null ? null : postRepository.findById(commentDTO.getPost()).orElseThrow(() -> new NotFoundException("post not found"));
         comment.setPost(post);
         return comment;
@@ -171,6 +173,10 @@ public class CommentService {
             return referencedWarning;
         }
         return null;
+    }
+
+    private String getUsernameFromToken(String token) {
+        return jwtService.extractUsername(token.substring(7));
     }
 
 
