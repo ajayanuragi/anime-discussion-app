@@ -15,4 +15,10 @@ public interface LikeRepository extends JpaRepository<Like, Id> {
     Optional<Like> getLikesByPostId(Long postId);
 
     Optional<Like> getByPostId(Long postId);
+
+    Optional<Like> getByUserId(Long userId);
+
+    Optional<Like> getByPostIdAndUserId(Long postId, Long id);
+
+    Optional<Like> getByCommentIdAndUserId(Long commentId, Long id);
 }

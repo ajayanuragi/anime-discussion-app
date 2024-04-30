@@ -34,28 +34,23 @@ public class UserResource {
         return ResponseEntity.ok(userService.get(id));
     }
 
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createUser(@RequestBody @Valid final UserDTO userDTO) {
-        final Long createdId = userService.create(userDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
-
     @PutMapping("/{id}")
-    public ResponseEntity<Long> updateUser(@PathVariable(name = "id") final Long id,
+    public ResponseEntity<Long> updateUser(@RequestHeader("Authorization")  String token,
+            @PathVariable(name = "id") final Long id,
                                            @RequestBody @Valid final UserDTO userDTO) {
-        userService.update(id, userDTO);
+        userService.update(id, userDTO,token);
         return ResponseEntity.ok(id);
     }
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
-    public ResponseEntity<String> deleteUser(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<String> deleteUser(@PathVariable(name = "id") final Long id,
+                                             @RequestHeader("Authorization") String token) {
         final ReferencedWarning referencedWarning = userService.getReferencedWarning(id);
         if (referencedWarning != null) {
             throw new ReferencedException(referencedWarning);
         }
-        userService.delete(id);
+        userService.delete(id,token);
         return ResponseEntity.ok("User with userId" + id + "deleted successfully");
     }
 

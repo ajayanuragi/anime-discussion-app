@@ -21,8 +21,18 @@ public class LikeResource {
     }
 
     @PostMapping("/post/{postId}")
-    public ResponseEntity<String> likeThePost(@PathVariable(name = "postId") Long postId) {
-        return ResponseEntity.ok(likeService.likeOrDislikePost(postId));
+    public ResponseEntity<String> likeThePost(@RequestHeader("Authorization") String token, @PathVariable(name = "postId") Long postId) {
+        return ResponseEntity.ok(likeService.likeOrDislikePost(postId, token));
+    }
+
+    @GetMapping("/comment/{commentId}")
+    public ResponseEntity<Long> getLikesByCommentId(@PathVariable(name = "commentId") Long commentId) {
+        return ResponseEntity.ok(likeService.getLikesByCommentId(commentId));
+    }
+
+    @PostMapping("/comment/{commentId}")
+    public ResponseEntity<String> likeTheComment(@RequestHeader("Authorization") String token, @PathVariable(name = "commentId") Long commentId) {
+        return ResponseEntity.ok(likeService.likeOrDislikeComment(commentId, token));
     }
 
 }

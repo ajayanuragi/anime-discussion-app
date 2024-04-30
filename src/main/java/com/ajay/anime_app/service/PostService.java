@@ -26,7 +26,7 @@ public class PostService {
     private final LikeRepository likeRepository;
     private final JwtService jwtService;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, CommentRepository commentRepository, LikeRepository likeRepository, JwtService jwtService) {
+    public PostService(final PostRepository postRepository, final UserRepository userRepository, final CommentRepository commentRepository, final LikeRepository likeRepository, final JwtService jwtService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
@@ -103,8 +103,7 @@ public class PostService {
 
     public ReferencedWarning getReferencedWarning(final Long id) {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final Post post = postRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+        final Post post = postRepository.findById(id).orElseThrow(NotFoundException::new);
         final Comment postComment = commentRepository.findFirstByPost(post);
         if (postComment != null) {
             referencedWarning.setKey("post.comment.post.referenced");
@@ -117,9 +116,7 @@ public class PostService {
     public List<PostDTO> getPostsByUserId(Long userId) {
         checkIfUserExists(userId);
         List<Post> posts = postRepository.findByUserId(userId);
-        return posts.stream()
-                .map(post -> mapToDTO(post, new PostDTO()))
-                .toList();
+        return posts.stream().map(post -> mapToDTO(post, new PostDTO())).toList();
     }
 
     private void checkIfUserExists(Long userId) {

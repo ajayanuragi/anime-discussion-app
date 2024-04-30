@@ -80,20 +80,29 @@ public class CommentService {
         }
     }
 
-    public void update(final Long id, final CommentDTO commentDTO) {
+    public void update(final Long id, final CommentDTO commentDTO, String token) {
         final Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
-        if (comment == null) {
-            throw new NotFoundException("No comment with commentId: " + id + "found");
-        }
+        String username = getUsernameFromToken(token);
+
+        validation(comment, username, id);
         mapToEntity(commentDTO, comment);
         commentRepository.save(comment);
     }
 
-    public void delete(final Long id) {
-        Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
+    private void validation(Comment comment, String username, Long id) {
         if (comment == null) {
             throw new NotFoundException("No comment with commentId: " + id + "found");
         }
+        if (!comment.getUser().getUsername().equals(username)) {
+            throw new NotFoundException("You can't modify someone else comment.");
+        }
+    }
+
+    public void delete(final Long id, String token) {
+        Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
+        String username = getUsernameFromToken(token);
+        validation(comment, username, id);
+
         comment.setDeleted(true);
         commentRepository.save(comment);
     }

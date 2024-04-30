@@ -14,7 +14,7 @@ import java.util.Optional;
 public class JpaUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
 
-    public JpaUserDetailService(UserRepository userRepository) {
+    public JpaUserDetailService(final UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

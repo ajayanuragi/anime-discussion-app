@@ -10,6 +10,7 @@ import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
 import com.ajay.anime_app.util.ReferencedWarning;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +22,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(final UserRepository userRepository, final PostRepository postRepository, final CommentRepository commentRepository) {
+    public UserService(final UserRepository userRepository, final PostRepository postRepository, final CommentRepository commentRepository, final JwtService jwtService, final PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UserDTO> findAll() {
@@ -41,31 +46,33 @@ public class UserService {
         return mapToDTO(user, new UserDTO());
     }
 
-    public Long create(final UserDTO userDTO) {
-        final User user = new User();
-        validateUser(userDTO);
-        mapToEntity(userDTO, user);
-        return userRepository.save(user).getId();
-    }
-
-
-    public void update(final Long id, final UserDTO userDTO) {
+    public void update(final Long id, final UserDTO userDTO, String token) {
         final User user = userRepository.findByIdAndIsDeletedFalse(id);
-        if (user == null) {
-            throw new NotFoundException("User not found with userId: " + id);
-        }
+        String username = getUsernameFromToken(token);
+        validation(user, username, id);
         mapToEntity(userDTO, user);
         userRepository.save(user);
     }
 
-    public void delete(final Long id) {
-        final User user = userRepository.findByIdAndIsDeletedFalse(id);
+    private String getUsernameFromToken(String token) {
+        return jwtService.extractUsername(token.substring(7));
+    }
+
+    private void validation(User user, String username, long id) {
         if (user == null) {
             throw new NotFoundException("User not found with userId: " + id);
         }
+        if (!user.getUsername().equals(username)) {
+            throw new NotFoundException("You can't modify this user");
+        }
+    }
 
-        user.setDeleted(true); // Mark the user as deleted
-        userRepository.save(user); // Update the user entity in the database
+    public void delete(final Long id, String token) {
+        final User user = userRepository.findByIdAndIsDeletedFalse(id);
+        String username = getUsernameFromToken(token);
+        validation(user, username, id);
+        user.setDeleted(true);
+        userRepository.save(user);
     }
 
     private UserDTO mapToDTO(final User user, final UserDTO userDTO) {
@@ -80,7 +87,7 @@ public class UserService {
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         user.setUsername(userDTO.getUsername());
-        user.setPassword(userDTO.getPassword());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         return user;
     }
 
@@ -104,13 +111,6 @@ public class UserService {
             return referencedWarning;
         }
         return null;
-    }
-
-    //Validations
-    private void validateUser(UserDTO userDTO) {
-        if (userDTO.getUsername() == null || userDTO.getPassword() == null) {
-            throw new NotFoundException("Please provide userName and password");
-        }
     }
 
 }

@@ -42,20 +42,20 @@ public class CommentResource {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Long> updateComment(@PathVariable(name = "id") final Long id,
+    public ResponseEntity<Long> updateComment(@RequestHeader("Authorization") String token, @PathVariable(name = "id") final Long id,
                                               @RequestBody @Valid final CommentDTO commentDTO) {
-        commentService.update(id, commentDTO);
+        commentService.update(id, commentDTO, token);
         return ResponseEntity.ok(id);
     }
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteComment(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<Void> deleteComment(@RequestHeader("Authorization") String token, @PathVariable(name = "id") final Long id) {
         final ReferencedWarning referencedWarning = commentService.getReferencedWarning(id);
         if (referencedWarning != null) {
             throw new ReferencedException(referencedWarning);
         }
-        commentService.delete(id);
+        commentService.delete(id, token);
         return ResponseEntity.noContent().build();
     }
 
