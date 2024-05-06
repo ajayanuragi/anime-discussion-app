@@ -1,6 +1,21 @@
 # AnimeApp
 
-This web app is built for discussion on Anime.
+Welcome to the Anime Discussion App! This project aims to provide a platform for anime enthusiasts to discuss their favorite shows, characters, and more.
+
+## Features
+
+- User authentication and authorization with Spring Security
+- CRUD operations for managing user-generated content
+- RESTful APIs designed and documented using Swagger
+- Optimized database schema in MySQL for efficient storage and retrieval
+
+## Technologies Used
+
+- Spring Boot
+- Spring Data JPA
+- Spring Security
+- MySQL
+- Swagger
 
 ## Development
 
