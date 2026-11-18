@@ -11,6 +11,7 @@ import com.ajay.anime_app.util.NotFoundException;
 import com.ajay.anime_app.util.ReferencedWarning;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -80,6 +81,7 @@ public class CommentService {
         }
     }
 
+    @Transactional
     public void update(final Long id, final CommentDTO commentDTO, String token) {
         final Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
         String username = getUsernameFromToken(token);
@@ -112,6 +114,7 @@ public class CommentService {
         commentDTO.setContent(comment.getContent());
         commentDTO.setUser(comment.getUser() == null ? null : comment.getUser().getId());
         commentDTO.setPost(comment.getPost() == null ? null : comment.getPost().getId());
+        commentDTO.setLikeCount(comment.getLikeCount());
         return commentDTO;
     }
 
