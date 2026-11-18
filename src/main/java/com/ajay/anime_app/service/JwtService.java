@@ -1,72 +1,52 @@
+
 package com.ajay.anime_app.service;
 
 import com.ajay.anime_app.domain.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.function.Function;
+import java.time.Instant;
 
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY;
+    private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
 
-    public JwtService(@Value("${jwt.secret}") String SECRET_KEY) {
-        this.SECRET_KEY = SECRET_KEY;
+    public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+        this.jwtEncoder = jwtEncoder;
+        this.jwtDecoder = jwtDecoder;
     }
 
     public String generateToken(User user) {
-        return Jwts
-                .builder()
+        Instant now = Instant.now();
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 100))
-                .signWith(getSigninKey())
-                .compact();
-    }
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(24 * 60 * 60))
+                .build();
 
-    private Claims extractAllClaims(String token) {
-        return Jwts
-                .parser()
-                .verifyWith(getSigninKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
 
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> resolver) {
-        Claims claims = extractAllClaims(token);
-        return resolver.apply(claims);
+        return jwtEncoder.encode(
+                JwtEncoderParameters.from(header, claims)
+        ).getTokenValue();
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return jwtDecoder.decode(token).getSubject();
     }
 
     public boolean isValid(String token, UserDetails user) {
-        String username = extractUsername(token);
-        return (username.equals(user.getUsername())) && !isTokenExpired(token);
+        Jwt jwt = jwtDecoder.decode(token);
+        return user.getUsername().equals(jwt.getSubject());
     }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private SecretKey getSigninKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
 }

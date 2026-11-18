@@ -1,6 +1,5 @@
 package com.ajay.anime_app.config;
 
-import com.ajay.anime_app.filter.JwtFilter;
 import com.ajay.anime_app.service.JpaUserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -23,26 +22,29 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final JpaUserDetailService jpaUserDetailService;
-    private final JwtFilter authFilter;
 
-    public SecurityConfig(JpaUserDetailService jpaUserDetailService, JwtFilter authFilter) {
+    public SecurityConfig(JpaUserDetailService jpaUserDetailService) {
         this.jpaUserDetailService = jpaUserDetailService;
-        this.authFilter = authFilter;
+
     }
 
     @Bean // Indicates that this method returns a Spring bean.
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http){
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .anyRequest()
                         .authenticated()
                 )
                 .userDetailsService(jpaUserDetailService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(withDefaults())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
                 .build();
     }
 
@@ -52,7 +54,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration){
         return configuration.getAuthenticationManager();
     }
 
