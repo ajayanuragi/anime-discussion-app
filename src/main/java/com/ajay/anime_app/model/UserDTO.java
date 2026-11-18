@@ -22,7 +22,6 @@ public class UserDTO {
     @NotNull
     @Size(max = 15)
     private String password;
-    private String role = "USER";
 
 
     public Long getId() {
@@ -65,11 +64,4 @@ public class UserDTO {
         this.password = password;
     }
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
 }
