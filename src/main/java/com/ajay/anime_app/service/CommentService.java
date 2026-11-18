@@ -8,7 +8,6 @@ import com.ajay.anime_app.repos.CommentRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
-import com.ajay.anime_app.util.ReferencedWarning;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,9 +50,7 @@ public class CommentService {
 
         validateCommentDTO(commentDTO);
         final Comment comment = new Comment();
-        if (user.isPresent()) {
-            comment.setUser(user.get());
-        }
+        user.ifPresent(comment::setUser);
         if (parentId == null) {
             mapToEntity(commentDTO, comment);
         } else {
@@ -99,7 +96,7 @@ public class CommentService {
             throw new NotFoundException("You can't modify someone else comment.");
         }
     }
-
+    @Transactional
     public void delete(final Long id, String token) {
         Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
         String username = getUsernameFromToken(token);
@@ -118,11 +115,15 @@ public class CommentService {
         return commentDTO;
     }
 
-    private Comment mapToEntity(final CommentDTO commentDTO, final Comment comment) {
+    private void mapToEntity(final CommentDTO commentDTO, final Comment comment) {
         comment.setContent(commentDTO.getContent());
-        final Post post = commentDTO.getPost() == null ? null : postRepository.findById(commentDTO.getPost()).orElseThrow(() -> new NotFoundException("post not found"));
+
+        final Post post = commentDTO.getPost() == null
+                ? null
+                : postRepository.findById(commentDTO.getPost())
+                .orElseThrow(() -> new NotFoundException("post not found"));
+
         comment.setPost(post);
-        return comment;
     }
 
     public List<CommentDTO> getCommentsByUserId(Long userId) {
@@ -167,24 +168,6 @@ public class CommentService {
             throw new NotFoundException("Please check id again " + id);
         }
 
-    }
-
-    public ReferencedWarning getReferencedWarning(final Long id) {
-        final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final User user = userRepository.findById(id).orElseThrow(NotFoundException::new);
-        final Post userPost = postRepository.findFirstByUser(user);
-        if (userPost != null) {
-            referencedWarning.setKey("user.post.user.referenced");
-            referencedWarning.addParam(userPost.getId());
-            return referencedWarning;
-        }
-        final Comment userComment = commentRepository.findFirstByUser(user);
-        if (userComment != null) {
-            referencedWarning.setKey("user.comment.user.referenced");
-            referencedWarning.addParam(userComment.getId());
-            return referencedWarning;
-        }
-        return null;
     }
 
     private String getUsernameFromToken(String token) {

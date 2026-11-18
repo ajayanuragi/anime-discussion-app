@@ -3,8 +3,6 @@ package com.ajay.anime_app.rest;
 
 import com.ajay.anime_app.model.CommentDTO;
 import com.ajay.anime_app.service.CommentService;
-import com.ajay.anime_app.util.ReferencedException;
-import com.ajay.anime_app.util.ReferencedWarning;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -65,13 +63,6 @@ public class CommentResource {
             @Parameter(hidden = true)
             @RequestHeader("Authorization") String token,
             @PathVariable(name = "id") final Long id) {
-
-        final ReferencedWarning referencedWarning =
-                commentService.getReferencedWarning(id);
-
-        if (referencedWarning != null) {
-            throw new ReferencedException(referencedWarning);
-        }
 
         commentService.delete(id, token);
         return ResponseEntity.noContent().build();
