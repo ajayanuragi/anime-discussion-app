@@ -1,5 +1,6 @@
 package com.ajay.anime_app.model;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -14,12 +15,12 @@ public class UserDTO {
     @Size(max = 15)
     private String lastName;
 
-    @NotNull
+    @NotBlank
     @Size(max = 15)
     @UserUsernameUnique
     private String username;
 
-    @NotNull
+    @NotBlank
     @Size(max = 15)
     private String password;
 
