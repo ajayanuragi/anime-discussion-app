@@ -2,8 +2,6 @@
 package com.ajay.anime_app.service;
 
 import com.ajay.anime_app.domain.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -43,10 +41,5 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return jwtDecoder.decode(token).getSubject();
-    }
-
-    public boolean isValid(String token, UserDetails user) {
-        Jwt jwt = jwtDecoder.decode(token);
-        return user.getUsername().equals(jwt.getSubject());
     }
 }
