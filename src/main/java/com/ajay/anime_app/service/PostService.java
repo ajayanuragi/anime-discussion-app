@@ -5,7 +5,6 @@ import com.ajay.anime_app.domain.Post;
 import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.model.PostDTO;
 import com.ajay.anime_app.repos.CommentRepository;
-import com.ajay.anime_app.repos.LikeRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
@@ -14,8 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-
 
 @Service
 public class PostService {
@@ -23,14 +20,12 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final LikeRepository likeRepository;
     private final JwtService jwtService;
 
-    public PostService(final PostRepository postRepository, final UserRepository userRepository, final CommentRepository commentRepository, final LikeRepository likeRepository, final JwtService jwtService) {
+    public PostService(final PostRepository postRepository, final UserRepository userRepository, final CommentRepository commentRepository, final JwtService jwtService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
-        this.likeRepository = likeRepository;
         this.jwtService = jwtService;
     }
 
@@ -51,8 +46,11 @@ public class PostService {
     public Long create(final PostDTO postDTO, String token) {
         final Post post = new Post();
         String username = getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByUsernameAndIsDeletedFalse(username);
-        optionalUser.ifPresent(post::setUser);
+        User user = userRepository
+                .findByUsernameAndIsDeletedFalse(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        post.setUser(user);
         mapToEntity(postDTO, post);
         return postRepository.save(post).getId();
     }
@@ -95,10 +93,9 @@ public class PostService {
         return postDTO;
     }
 
-    private Post mapToEntity(final PostDTO postDTO, final Post post) {
+    private void mapToEntity(final PostDTO postDTO, final Post post) {
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
-        return post;
     }
 
     public ReferencedWarning getReferencedWarning(final Long id) {
