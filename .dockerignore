@@ -1,0 +1,8 @@
+.git
+.idea
+target
+*.iml
+.env.local
+.env.*
+secrets.properties
+**/secrets.properties
