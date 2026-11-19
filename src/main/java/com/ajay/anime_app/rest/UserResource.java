@@ -6,7 +6,6 @@ import com.ajay.anime_app.util.ReferencedException;
 import com.ajay.anime_app.util.ReferencedWarning;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +51,12 @@ public class UserResource {
         }
         userService.delete(id,token);
         return ResponseEntity.ok("User with userId" + id + "deleted successfully");
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(
+            @RequestParam String username) {
+        return ResponseEntity.ok(userService.searchUsers(username));
     }
 
 }
