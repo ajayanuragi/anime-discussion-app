@@ -113,4 +113,12 @@ public class UserService {
         return null;
     }
 
+    public List<UserDTO> searchUsers(String username) {
+        return userRepository
+                .findByUsernameContainingIgnoreCaseAndIsDeletedFalse(username)
+                .stream()
+                .map(user -> mapToDTO(user, new UserDTO()))
+                .toList();
+    }
+
 }

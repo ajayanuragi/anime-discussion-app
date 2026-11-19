@@ -399,4 +399,23 @@ class UserServiceTest {
 
         verifyNoInteractions(postRepository, commentRepository);
     }
+
+    @Test
+    void searchUsersShouldReturnMatchingUsers() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("rahul123");
+
+        when(userRepository.findByUsernameContainingIgnoreCaseAndIsDeletedFalse("rah"))
+                .thenReturn(List.of(user));
+
+        List<UserDTO> result = userService.searchUsers("rah");
+
+        assertEquals(1, result.size());
+        assertEquals("rahul123", result.getFirst().getUsername());
+        assertNull(result.getFirst().getPassword());
+
+        verify(userRepository)
+                .findByUsernameContainingIgnoreCaseAndIsDeletedFalse("rah");
+    }
 }

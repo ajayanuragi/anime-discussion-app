@@ -130,4 +130,22 @@ class UserResourceTest {
         verify(userService).getReferencedWarning(1L);
         verify(userService).delete(1L, "Bearer test-token");
     }
+
+    @Test
+    void searchUsersShouldReturnMatchingUsers() throws Exception {
+        UserDTO user = new UserDTO();
+        user.setId(1L);
+        user.setUsername("rahul123");
+
+        when(userService.searchUsers("rah"))
+                .thenReturn(List.of(user));
+
+        mockMvc.perform(get("/api/users/search")
+                        .param("username", "rah"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].username").value("rahul123"))
+                .andExpect(jsonPath("$[0].password").isEmpty());
+
+        verify(userService).searchUsers("rah");
+    }
 }
