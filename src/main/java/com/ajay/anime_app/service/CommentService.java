@@ -5,15 +5,19 @@ import com.ajay.anime_app.domain.Post;
 import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.model.CommentDTO;
 import com.ajay.anime_app.repos.CommentRepository;
+import com.ajay.anime_app.repos.LikeRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 @Service
@@ -23,25 +27,38 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final JwtService jwtService;
+    public final LikeRepository likeRepository;
 
-    public CommentService(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, JwtService jwtService) {
+    public CommentService(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, JwtService jwtService, LikeRepository likeRepository) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.jwtService = jwtService;
+        this.likeRepository = likeRepository;
     }
 
     public List<CommentDTO> findAll() {
-        final List<Comment> comments = commentRepository.findByIsDeletedFalse(Sort.by("id"));
-        return comments.stream().map(comment -> mapToDTO(comment, new CommentDTO())).toList();
+        final List<Comment> comments =
+                commentRepository.findByIsDeletedFalse(Sort.by("id"));
+
+        Long currentUserId = getCurrentUserId();
+
+        return comments.stream()
+                .map(comment -> mapToDTO(comment, new CommentDTO(), currentUserId))
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public CommentDTO get(final Long id) {
         Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
+
         if (comment == null) {
-            throw new NotFoundException("No comment with commentId: " + id + "found");
+            throw new NotFoundException("No comment with commentId: " + id + " found");
         }
-        return mapToDTO(comment, new CommentDTO());
+
+        Long currentUserId = getCurrentUserId();
+
+        return mapToDTO(comment, new CommentDTO(), currentUserId);
     }
 
     public Long create(final CommentDTO commentDTO, Long parentId, String token) {
@@ -107,13 +124,17 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
-    private CommentDTO mapToDTO(final Comment comment, final CommentDTO commentDTO) {
+    private CommentDTO mapToDTO(final Comment comment, final CommentDTO commentDTO, final Long currentUserId) {
         commentDTO.setId(comment.getId());
         commentDTO.setContent(comment.getContent());
         commentDTO.setUser(comment.getUser() == null ? null : comment.getUser().getId());
         commentDTO.setPost(comment.getPost() == null ? null : comment.getPost().getId());
         commentDTO.setLikeCount(comment.getLikeCount());
         commentDTO.setUsername(comment.getUser().getUsername());
+        boolean liked= currentUserId!=null && likeRepository.getByCommentIdAndUserId(comment.getId(), currentUserId).
+        map(like ->!like.isDeleted()).orElse(false);
+
+        commentDTO.setLikedByCurrentUser(liked);
         return commentDTO;
     }
 
@@ -128,13 +149,22 @@ public class CommentService {
         comment.setPost(post);
     }
 
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByUserId(Long userId) {
         checkIfEntityExists(userId);
-        List<Comment> comments = commentRepository.findCommentsByUserIdAndIsDeletedFalse(userId);
+
+        List<Comment> comments =
+                commentRepository.findCommentsByUserIdAndIsDeletedFalse(userId);
+
         if (comments.isEmpty()) {
             throw new NotFoundException("No comments found for that user");
         }
-        return comments.stream().map(comment -> mapToDTO(comment, new CommentDTO())).toList();
+
+        Long currentUserId = getCurrentUserId();
+
+        return comments.stream()
+                .map(comment -> mapToDTO(comment, new CommentDTO(), currentUserId))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -143,22 +173,31 @@ public class CommentService {
 
         List<Comment> comments = commentRepository.findCommentsByPostId(postId);
 
+        Long currentUserId = getCurrentUserId();
+
         return comments.stream()
-                .map(comment -> mapToDTO(comment, new CommentDTO()))
+                .map(comment -> mapToDTO(comment, new CommentDTO(), currentUserId))
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByParentId(Long parentId) {
         checkIfEntityExists(parentId);
+
         Comment parentComment = commentRepository.findById(parentId)
                 .orElseThrow(() -> new NotFoundException("Parent comment not found"));
+
         List<Comment> comments = commentRepository.findByParentComment(parentComment);
+
         if (comments.isEmpty()) {
             throw new NotFoundException("This comment has no comments yet");
         }
-        return comments.stream().map(comment -> mapToDTO(comment, new CommentDTO())).toList();
 
+        Long currentUserId = getCurrentUserId();
 
+        return comments.stream()
+                .map(comment -> mapToDTO(comment, new CommentDTO(), currentUserId))
+                .toList();
     }
 
     private void checkIfEntityExists(Long id) {
@@ -177,6 +216,26 @@ public class CommentService {
     private String getUsernameFromToken(String token) {
         return jwtService.extractUsername(token.substring(7));
     }
+    private Long getCurrentUserId() {
+        return getaLong(userRepository);
+    }
 
+    @Nullable
+    static Long getaLong(UserRepository userRepository) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        String username = authentication.getName();
+
+        return userRepository.findByUsernameAndIsDeletedFalse(username)
+                .map(User::getId)
+                .orElse(null);
+    }
 
 }

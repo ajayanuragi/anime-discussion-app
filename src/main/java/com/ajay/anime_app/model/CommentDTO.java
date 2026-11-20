@@ -17,6 +17,15 @@ public class CommentDTO {
     private Long post;
     private Long likeCount;
     private String username;
+    private boolean likedByCurrentUser;
+
+    public boolean isLikedByCurrentUser() {
+        return likedByCurrentUser;
+    }
+
+    public void setLikedByCurrentUser(boolean likedByCurrentUser) {
+        this.likedByCurrentUser = likedByCurrentUser;
+    }
 
     public Long getId() {
         return id;
@@ -49,7 +58,6 @@ public class CommentDTO {
     public void setPost(final Long post) {
         this.post = post;
     }
-
 
     public Long getLikeCount() {
         return likeCount;
