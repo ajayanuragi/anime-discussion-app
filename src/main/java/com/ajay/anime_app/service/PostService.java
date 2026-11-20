@@ -5,11 +5,14 @@ import com.ajay.anime_app.domain.Post;
 import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.model.PostDTO;
 import com.ajay.anime_app.repos.CommentRepository;
+import com.ajay.anime_app.repos.LikeRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
 import com.ajay.anime_app.util.ReferencedWarning;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,26 +24,38 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final JwtService jwtService;
+    private final LikeRepository likeRepository;
 
-    public PostService(final PostRepository postRepository, final UserRepository userRepository, final CommentRepository commentRepository, final JwtService jwtService) {
+    public PostService(final PostRepository postRepository, final UserRepository userRepository, final CommentRepository commentRepository, final JwtService jwtService, final LikeRepository likeRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.commentRepository = commentRepository;
         this.jwtService = jwtService;
+        this.likeRepository = likeRepository;
     }
 
     public List<PostDTO> findAll() {
-        final List<Post> posts = postRepository.findByIsDeletedFalse(Sort.by("id"));
-        return posts.stream().map(post -> mapToDTO(post, new PostDTO())).toList();
+        final List<Post> posts =
+                postRepository.findByIsDeletedFalse(Sort.by("id"));
+
+        Long currentUserId = getCurrentUserId();
+
+        return posts.stream()
+                .map(post -> mapToDTO(post, new PostDTO(), currentUserId))
+                .toList();
     }
+
 
     public PostDTO get(final Long id) {
         Post post = postRepository.findByIdAndIsDeletedFalse(id);
+
         if (post == null) {
             throw new NotFoundException("No post found with postId: " + id);
         }
-        return mapToDTO(post, new PostDTO());
 
+        Long currentUserId = getCurrentUserId();
+
+        return mapToDTO(post, new PostDTO(), currentUserId);
     }
 
     public Long create(final PostDTO postDTO, String token) {
@@ -84,12 +99,24 @@ public class PostService {
         postRepository.save(post);
     }
 
-    private PostDTO mapToDTO(final Post post, final PostDTO postDTO) {
+    private PostDTO mapToDTO(
+            final Post post,
+            final PostDTO postDTO,
+            final Long currentUserId) {
+
         postDTO.setId(post.getId());
         postDTO.setTitle(post.getTitle());
         postDTO.setContent(post.getContent());
         postDTO.setUserId(post.getUser().getId());
         postDTO.setLikeCount(post.getLikeCount());
+
+        boolean liked = currentUserId != null &&
+                likeRepository.getByPostIdAndUserId(post.getId(), currentUserId)
+                        .map(like -> !like.isDeleted())
+                        .orElse(false);
+
+        postDTO.setLikedByCurrentUser(liked);
+
         return postDTO;
     }
 
@@ -112,8 +139,13 @@ public class PostService {
 
     public List<PostDTO> getPostsByUserId(Long userId) {
         checkIfUserExists(userId);
+
         List<Post> posts = postRepository.findByUserId(userId);
-        return posts.stream().map(post -> mapToDTO(post, new PostDTO())).toList();
+        Long currentUserId = getCurrentUserId();
+
+        return posts.stream()
+                .map(post -> mapToDTO(post, new PostDTO(), currentUserId))
+                .toList();
     }
 
     private void checkIfUserExists(Long userId) {
@@ -121,5 +153,22 @@ public class PostService {
         if (user == null) {
             throw new NotFoundException("No user found with userId: " + userId);
         }
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        String username = authentication.getName();
+
+        return userRepository.findByUsernameAndIsDeletedFalse(username)
+                .map(User::getId)
+                .orElse(null);
     }
 }

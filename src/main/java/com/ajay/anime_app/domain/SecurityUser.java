@@ -6,9 +6,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class SecurityUser implements UserDetails {
-    private User user;
+    private final User user;
 
     public SecurityUser(User user) {
         this.user = user;
@@ -31,24 +33,4 @@ public class SecurityUser implements UserDetails {
 
     }
 
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

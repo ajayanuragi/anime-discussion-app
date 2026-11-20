@@ -96,6 +96,7 @@ public class CommentService {
             throw new NotFoundException("You can't modify someone else comment.");
         }
     }
+
     @Transactional
     public void delete(final Long id, String token) {
         Comment comment = commentRepository.findByIdAndIsDeletedFalse(id);
@@ -112,6 +113,7 @@ public class CommentService {
         commentDTO.setUser(comment.getUser() == null ? null : comment.getUser().getId());
         commentDTO.setPost(comment.getPost() == null ? null : comment.getPost().getId());
         commentDTO.setLikeCount(comment.getLikeCount());
+        commentDTO.setUsername(comment.getUser().getUsername());
         return commentDTO;
     }
 
@@ -135,13 +137,15 @@ public class CommentService {
         return comments.stream().map(comment -> mapToDTO(comment, new CommentDTO())).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByPostId(Long postId) {
         checkIfEntityExists(postId);
+
         List<Comment> comments = commentRepository.findCommentsByPostId(postId);
-        if (comments.isEmpty()) {
-            throw new NotFoundException("This Post has no comments yet");
-        }
-        return comments.stream().map(comment -> mapToDTO(comment, new CommentDTO())).toList();
+
+        return comments.stream()
+                .map(comment -> mapToDTO(comment, new CommentDTO()))
+                .toList();
     }
 
     public List<CommentDTO> getCommentsByParentId(Long parentId) {

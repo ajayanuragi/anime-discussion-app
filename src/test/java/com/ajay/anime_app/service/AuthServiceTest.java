@@ -59,6 +59,7 @@ class AuthServiceTest {
                         && "encodedPassword".equals(user.getPassword())
         ));
     }
+
     @Test
     void authenticateShouldReturnToken() {
         UserDTO request = new UserDTO();
@@ -82,6 +83,7 @@ class AuthServiceTest {
         );
         verify(jwtService).generateToken(user);
     }
+
     @Test
     void authenticateShouldFailForInvalidCredentials() {
         UserDTO request = new UserDTO();

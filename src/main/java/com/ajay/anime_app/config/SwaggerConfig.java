@@ -4,11 +4,11 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 
 
 @Configuration
@@ -41,7 +41,7 @@ public class SwaggerConfig {
     @Bean
     public OperationCustomizer operationCustomizer() {
         // add error type to each operation
-        return (operation, handlerMethod) -> {
+        return (operation, ignored) -> {
             operation.getResponses().addApiResponse("4xx/5xx", new ApiResponse()
                     .description("Error")
                     .content(new Content().addMediaType("*/*", new MediaType().schema(

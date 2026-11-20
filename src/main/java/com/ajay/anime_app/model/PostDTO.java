@@ -11,12 +11,13 @@ public class PostDTO {
     @NotNull
     @Size(max = 255)
     private String title;
-
+    @NotNull
     @Size(max = 255)
     private String content;
 
     private Long userId;
     private Long likeCount;
+    private boolean likedByCurrentUser;
 
 
     public Long getId() {
@@ -58,5 +59,13 @@ public class PostDTO {
 
     public void setLikeCount(Long likeCount) {
         this.likeCount = likeCount;
+    }
+
+    public boolean isLikedByCurrentUser() {
+        return likedByCurrentUser;
+    }
+
+    public void setLikedByCurrentUser(boolean likedByCurrentUser) {
+        this.likedByCurrentUser = likedByCurrentUser;
     }
 }

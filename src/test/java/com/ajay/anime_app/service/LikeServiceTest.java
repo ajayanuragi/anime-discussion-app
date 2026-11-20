@@ -1,30 +1,25 @@
 package com.ajay.anime_app.service;
 
 import com.ajay.anime_app.domain.Comment;
+import com.ajay.anime_app.domain.Like;
+import com.ajay.anime_app.domain.Post;
+import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.repos.CommentRepository;
 import com.ajay.anime_app.repos.LikeRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
+import com.ajay.anime_app.util.NotFoundException;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ajay.anime_app.domain.Post;
-import com.ajay.anime_app.domain.User;
-import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import com.ajay.anime_app.domain.Like;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import com.ajay.anime_app.util.NotFoundException;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LikeServiceTest {
@@ -85,6 +80,7 @@ class LikeServiceTest {
 
         verify(postRepository).save(post);
     }
+
     @Test
     void likeOrDislikePostShouldUnlikeExistingLike() {
         Long postId = 1L;
@@ -121,6 +117,7 @@ class LikeServiceTest {
         verify(likeRepository).save(like);
         verify(postRepository).save(post);
     }
+
     @Test
     void likeOrDislikePostShouldReLikePreviouslyUnlikedPost() {
         Long postId = 1L;
@@ -252,6 +249,7 @@ class LikeServiceTest {
 
         verify(postRepository).findByIdAndIsDeletedFalse(postId);
     }
+
     @Test
     void likeOrDislikeCommentShouldCreateNewLike() {
         Long commentId = 1L;
@@ -327,6 +325,7 @@ class LikeServiceTest {
         verify(likeRepository).save(like);
         verify(commentRepository).save(comment);
     }
+
     @Test
     void likeOrDislikeCommentShouldReLikePreviouslyUnlikedComment() {
         Long commentId = 1L;
@@ -420,6 +419,7 @@ class LikeServiceTest {
 
         verify(likeRepository, never()).save(any(Like.class));
     }
+
     @Test
     void getLikesByCommentIdShouldReturnLikeCount() {
         Long commentId = 1L;
@@ -438,6 +438,7 @@ class LikeServiceTest {
         verify(commentRepository)
                 .findByIdAndIsDeletedFalse(commentId);
     }
+
     @Test
     void getLikesByCommentIdShouldFailWhenCommentNotFound() {
         Long commentId = 999L;

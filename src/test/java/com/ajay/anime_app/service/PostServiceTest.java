@@ -1,26 +1,24 @@
 package com.ajay.anime_app.service;
-import com.ajay.anime_app.util.NotFoundException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
+import com.ajay.anime_app.domain.Post;
+import com.ajay.anime_app.domain.User;
+import com.ajay.anime_app.model.PostDTO;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
+import com.ajay.anime_app.util.NotFoundException;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.ajay.anime_app.domain.Post;
-import com.ajay.anime_app.domain.User;
-import com.ajay.anime_app.model.PostDTO;
-import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
@@ -71,6 +69,7 @@ class PostServiceTest {
                         && post.getUser() == user
         ));
     }
+
     @Test
     void createShouldFailWhenUserNotFound() {
         PostDTO request = new PostDTO();
@@ -202,6 +201,7 @@ class PostServiceTest {
 
         verify(postRepository, never()).save(any(Post.class));
     }
+
     @Test
     void updateShouldFailWhenPostNotFound() {
         Long postId = 999L;
@@ -255,6 +255,7 @@ class PostServiceTest {
         verify(postRepository).save(post);
         verify(postRepository, never()).delete(any(Post.class));
     }
+
     @Test
     void deleteShouldFailWhenUserIsNotOwner() {
         Long postId = 1L;

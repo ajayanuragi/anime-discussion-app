@@ -2,20 +2,20 @@ package com.ajay.anime_app.service;
 
 import com.ajay.anime_app.domain.Comment;
 import com.ajay.anime_app.domain.Post;
+import com.ajay.anime_app.domain.User;
+import com.ajay.anime_app.model.UserDTO;
 import com.ajay.anime_app.repos.CommentRepository;
 import com.ajay.anime_app.repos.PostRepository;
 import com.ajay.anime_app.repos.UserRepository;
 import com.ajay.anime_app.util.NotFoundException;
 import com.ajay.anime_app.util.ReferencedWarning;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import com.ajay.anime_app.domain.User;
-import com.ajay.anime_app.model.UserDTO;
-import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -339,6 +339,7 @@ class UserServiceTest {
         verify(postRepository).findFirstByUser(user);
         verifyNoInteractions(commentRepository);
     }
+
     @Test
     void getReferencedWarningShouldReturnWarningWhenUserHasComment() {
         Long userId = 1L;

@@ -1,27 +1,22 @@
 package com.ajay.anime_app.rest;
 
+import com.ajay.anime_app.model.CommentDTO;
 import com.ajay.anime_app.service.CommentService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.junit.jupiter.api.Test;
+
 import java.util.List;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import com.ajay.anime_app.model.CommentDTO;
-
-import org.springframework.http.MediaType;
-
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @ExtendWith(MockitoExtension.class)
 class CommentResourceTest {
@@ -79,10 +74,10 @@ class CommentResourceTest {
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "content": "Great anime!"
-                            }
-                            """))
+                                {
+                                    "content": "Great anime!"
+                                }
+                                """))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("1"));
 
@@ -106,10 +101,10 @@ class CommentResourceTest {
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "content": "I agree!"
-                            }
-                            """))
+                                {
+                                    "content": "I agree!"
+                                }
+                                """))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("2"));
 
@@ -126,10 +121,10 @@ class CommentResourceTest {
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "content": "Updated comment"
-                            }
-                            """))
+                                {
+                                    "content": "Updated comment"
+                                }
+                                """))
                 .andExpect(status().isOk())
                 .andExpect(content().string("1"));
 
@@ -149,6 +144,7 @@ class CommentResourceTest {
 
         verify(commentService).delete(1L, "Bearer test-token");
     }
+
     @Test
     void getCommentsByUserIdShouldReturn200() throws Exception {
         CommentDTO commentDTO = new CommentDTO();
@@ -180,6 +176,7 @@ class CommentResourceTest {
 
         verify(commentService).getCommentsByPostId(5L);
     }
+
     @Test
     void getCommentsByParentIdShouldReturn200() throws Exception {
         CommentDTO commentDTO = new CommentDTO();

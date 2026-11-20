@@ -1,28 +1,25 @@
 package com.ajay.anime_app.rest;
 
+import com.ajay.anime_app.model.PostDTO;
 import com.ajay.anime_app.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.junit.jupiter.api.Test;
+
 import java.util.List;
-
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import com.ajay.anime_app.model.PostDTO;
-
-import org.springframework.http.MediaType;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostResourceTest {
@@ -77,11 +74,11 @@ class PostResourceTest {
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "title": "Naruto",
-                                "content": "Discussion about Naruto"
-                            }
-                            """))
+                                {
+                                    "title": "Naruto",
+                                    "content": "Discussion about Naruto"
+                                }
+                                """))
                 .andExpect(status().isCreated())
                 .andExpect(content().string("1"));
 
@@ -97,11 +94,11 @@ class PostResourceTest {
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                                "title": "Updated Naruto",
-                                "content": "Updated discussion about Naruto"
-                            }
-                            """))
+                                {
+                                    "title": "Updated Naruto",
+                                    "content": "Updated discussion about Naruto"
+                                }
+                                """))
                 .andExpect(status().isOk())
                 .andExpect(content().string(
                         "Post with postId: 1 update successfully"

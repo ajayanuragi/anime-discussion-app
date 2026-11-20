@@ -34,10 +34,10 @@ public class UserResource {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Long> updateUser(@RequestHeader("Authorization")  String token,
-            @PathVariable(name = "id") final Long id,
+    public ResponseEntity<Long> updateUser(@RequestHeader("Authorization") String token,
+                                           @PathVariable(name = "id") final Long id,
                                            @RequestBody @Valid final UserDTO userDTO) {
-        userService.update(id, userDTO,token);
+        userService.update(id, userDTO, token);
         return ResponseEntity.ok(id);
     }
 
@@ -49,7 +49,7 @@ public class UserResource {
         if (referencedWarning != null) {
             throw new ReferencedException(referencedWarning);
         }
-        userService.delete(id,token);
+        userService.delete(id, token);
         return ResponseEntity.ok("User with userId" + id + "deleted successfully");
     }
 

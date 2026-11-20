@@ -1,16 +1,18 @@
 package com.ajay.anime_app.service;
 
-import com.ajay.anime_app.repos.CommentRepository;
-import com.ajay.anime_app.repos.PostRepository;
-import com.ajay.anime_app.repos.UserRepository;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import com.ajay.anime_app.domain.Comment;
 import com.ajay.anime_app.domain.Post;
 import com.ajay.anime_app.domain.User;
 import com.ajay.anime_app.model.CommentDTO;
+import com.ajay.anime_app.repos.CommentRepository;
+import com.ajay.anime_app.repos.PostRepository;
+import com.ajay.anime_app.repos.UserRepository;
+import com.ajay.anime_app.util.NotFoundException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -18,10 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import org.junit.jupiter.api.Test;
-import com.ajay.anime_app.util.NotFoundException;
-
-import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -79,6 +77,7 @@ class CommentServiceTest {
                         && comment.getPost() == post
         ));
     }
+
     @Test
     void createShouldFailWhenPostNotFound() {
         CommentDTO request = new CommentDTO();
@@ -105,6 +104,7 @@ class CommentServiceTest {
 
         verify(commentRepository, never()).save(any(Comment.class));
     }
+
     @Test
     void updateShouldModifyCommentWhenOwner() {
         Long commentId = 1L;
@@ -132,6 +132,7 @@ class CommentServiceTest {
 
         verify(commentRepository).save(comment);
     }
+
     @Test
     void updateShouldFailWhenUserIsNotOwner() {
         Long commentId = 1L;
@@ -165,6 +166,7 @@ class CommentServiceTest {
 
         verify(commentRepository, never()).save(any(Comment.class));
     }
+
     @Test
     void updateShouldFailWhenCommentNotFound() {
         Long commentId = 999L;
