@@ -18,6 +18,15 @@ public class CommentDTO {
     private Long likeCount;
     private String username;
     private boolean likedByCurrentUser;
+    private Long parentId;
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
+    }
 
     public boolean isLikedByCurrentUser() {
         return likedByCurrentUser;

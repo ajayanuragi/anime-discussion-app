@@ -129,6 +129,11 @@ public class CommentService {
         commentDTO.setContent(comment.getContent());
         commentDTO.setUser(comment.getUser() == null ? null : comment.getUser().getId());
         commentDTO.setPost(comment.getPost() == null ? null : comment.getPost().getId());
+        commentDTO.setParentId(
+                comment.getParentComment() == null
+                        ? null
+                        : comment.getParentComment().getId()
+        );
         commentDTO.setLikeCount(comment.getLikeCount());
         commentDTO.setUsername(comment.getUser().getUsername());
         boolean liked= currentUserId!=null && likeRepository.getByCommentIdAndUserId(comment.getId(), currentUserId).
